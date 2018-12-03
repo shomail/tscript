@@ -1,5 +1,18 @@
+interface User {
+  email: string;
+  password: string;
+}
+
+interface ConfirmedUser extends User {
+  isActive: boolean;
+}
+
+interface Admin extends ConfirmedUser {
+  adminSince: Date;
+}
+
 export class AccountManager {
-  users = new Array();
+  users: User[] = new Array();
 
   /**
    * Create a new user account
@@ -8,9 +21,9 @@ export class AccountManager {
    * @return the new user account. An admin must activate it using activateNewUser
    * @see this.activateNewUser
    */
-  register(email, password) {
-    if(!email) throw 'Must provide an email';
-    if(!password) throw 'Must provide a password';
+  register(email: string, password: string): User {
+    if (!email) throw 'Must provide an email';
+    if (!password) throw 'Must provide a password';
     let user = { email, password };
     this.users.push(user);
     return user;
@@ -22,10 +35,11 @@ export class AccountManager {
    * @param userToApprove Newly-registered user, who is to be activated
    * @return the updated user object, now activated
    */
-  activateNewUser(approver, userToApprove) {
-    if (!approver.adminSince) throw "Approver is not an admin!";
-    userToApprove.isActive = true;
-    return userToApprove;
+  activateNewUser(approver: Admin, userToApprove: User): ConfirmedUser {
+    if (!approver.adminSince) throw 'Approver is not an admin!';
+    let toConfirm = userToApprove as ConfirmedUser;
+    toConfirm.isActive = true;
+    return toConfirm;
   }
 
   /**
@@ -34,10 +48,28 @@ export class AccountManager {
    * @param user an active user who you're making an admin
    * @return the updated user object, now can also be regarded as an admin
    */
-  promoteToAdmin(existingAdmin, user) {
-    if (!existingAdmin.adminSince) throw "Not an admin!";
-    if (user.isActive !== true) throw "User must be active in order to be promoted to admin!";
-    user.adminSince = new Date();
-    return user;
+  promoteToAdmin(existingAdmin: Admin, user: ConfirmedUser) {
+    if (!existingAdmin.adminSince) throw 'Not an admin!';
+    if (user.isActive !== true) throw 'User must be active in order to be promoted to admin!';
+    let newAdmin = user as Admin;
+    newAdmin.adminSince = new Date();
+    return newAdmin;
   }
 }
+
+const admin: Admin = {
+  email: 'abc',
+  password: 'xyz',
+  isActive: true,
+  adminSince: new Date()
+};
+
+const u: ConfirmedUser = {
+  email: 'a',
+  password: 'b',
+  isActive: true
+};
+
+let am = new AccountManager();
+
+am.promoteToAdmin(admin, u);
